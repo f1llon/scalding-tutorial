@@ -14,13 +14,11 @@ object RankOnTimeAirlinesIdJob {
 
 class RankOnTimeAirlinesIdJob(args: Args) extends Job(args) {
   val srcDir = args("input")
-  val (files, outputFile) = implicitly[Mode] match {
+  val files = implicitly[Mode] match {
     case Hdfs(_, conf) =>
       val hdfs = HDFS(conf)
       val directory = hdfs.getWorkingDirectory
-      (hdfs.subFiles(directory / Path(srcDir), ".csv"), directory.toString + "/output")
-//    case Local(_) =>
-//      (File(s".$srcDir").subFiles(".csv").map(_.getCanonicalPath), ".output/result.csv")
+      hdfs.subFiles(directory / Path(srcDir), ".csv")
   }
 
   files.map(Csv(_, fields = AirlineOnTimeSchema, skipHeader = true).read)
@@ -29,11 +27,7 @@ class RankOnTimeAirlinesIdJob(args: Args) extends Job(args) {
       _.average(Symbol(AirlineOnTimeSchema.ArrDelay.toString))
     }
     .groupAll(_.sortBy(AirlineOnTimeSchema.ArrDelay))
-    .write(Csv(outputFile, writeHeader = true))
-
-  override def config: Map[AnyRef, AnyRef] = {
-    super.config ++ Map("cascading.app.appjar.path" -> "/home/hadoop/jars/cloud-computing-capstone-project_2.11-1.0-one-jar.jar")
-  }
+    .write(Csv(args("output"), writeHeader = true))
 }
 
 

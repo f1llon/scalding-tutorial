@@ -35,23 +35,12 @@ object BuildSettings {
 
     assemblyExcludedJars in assembly := {
       val cp = (fullClasspath in assembly).value
-      cp.foreach(x => println(x.data.getName))
       val excludes = Set[String](
         "minlog-1.2.jar", // Otherwise causes conflicts with Kyro (which bundles it)
         "janino-2.7.5.jar" // Janino includes a broken signature, and is not needed anyway
       )
       cp filter { jar => excludes(jar.data.getName) }
     }
-
-/*
-    assemblyMergeStrategy in assembly := {
-      case "project.clj" => MergeStrategy.discard
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    }
-*/
   )
-
   lazy val buildSettings = basicSettings ++ sbtAssemblySettings
 }
