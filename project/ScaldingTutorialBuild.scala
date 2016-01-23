@@ -13,7 +13,7 @@
 import sbt._
 import Keys._
 
-object ScaldingTutorialProjectBuild extends Build {
+object ScaldingTutorialBuild extends Build {
 
   import Dependencies._
   import BuildSettings._
@@ -32,12 +32,8 @@ object ScaldingTutorialProjectBuild extends Build {
         Libraries.cascadingLocal,
         Libraries.cascadingHadoop,
         Libraries.scaldingCore,
-        Libraries.scaldingJson,
-        Libraries.scaldingAvro,
         Libraries.hadoopCore,
-        Libraries.hadoopClientCore,
-        Libraries.specs2
-        // Add your additional libraries here (comma-separated)...
+        Libraries.hadoopClientCore
       )
     )
 }

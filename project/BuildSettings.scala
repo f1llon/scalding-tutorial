@@ -10,51 +10,47 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
  */
+
 import sbt._
 import Keys._
+import sbtassembly.{MergeStrategy, AssemblyKeys}
 
 object BuildSettings {
 
   // Basic settings for our app
   lazy val basicSettings = Seq[Setting[_]](
-    organization  := "Concurrent Inc.",
-    version       := "0.14.0", // -> follow the release numbers of scalding
-    description   := "The scalding tutorial as an SBT project",
-    scalaVersion  := "2.10.0", 
+    organization := "Concurrent Inc.",
+    version := "0.15.0", // -> follow the release numbers of scalding
+    description := "The scalding tutorial as an SBT project",
+    scalaVersion := "2.11.7",
     scalacOptions := Seq("-deprecation", "-encoding", "utf8"),
-    resolvers     ++= Dependencies.resolutionRepos
+    resolvers ++= Dependencies.resolutionRepos
   )
 
-  // sbt-assembly settings for building a fat jar
-  import sbtassembly.Plugin._
-  import AssemblyKeys._
-  lazy val sbtAssemblySettings = assemblySettings ++ Seq(
 
-    // Slightly cleaner jar name
-    jarName in assembly <<= (name, version) { (name, version) => name + "-" + version + ".jar" },
-    
-    // Drop these jars
-    excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
-      val excludes = Set(
-        "jsp-api-2.1-6.1.14.jar",
-        "jsp-2.1-6.1.14.jar",
-        "jasper-compiler-5.5.12.jar",
+  // sbt-assembly settings for building a fat jar
+  import AssemblyKeys._
+
+  lazy val sbtAssemblySettings = Seq(
+
+    assemblyExcludedJars in assembly := {
+      val cp = (fullClasspath in assembly).value
+      cp.foreach(x => println(x.data.getName))
+      val excludes = Set[String](
         "minlog-1.2.jar", // Otherwise causes conflicts with Kyro (which bundles it)
-        "janino-2.5.16.jar", // Janino includes a broken signature, and is not needed anyway
-        "commons-beanutils-core-1.8.0.jar", // Clash with each other and with commons-collections
-        "commons-beanutils-1.7.0.jar",      // "
-        "hadoop-core-1.1.2.jar", 
-        "hadoop-tools-1.1.2.jar" // "
-      ) 
+        "janino-2.7.5.jar" // Janino includes a broken signature, and is not needed anyway
+      )
       cp filter { jar => excludes(jar.data.getName) }
-    },
-    
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) {
-      (old) => {
-        case "project.clj" => MergeStrategy.discard // Leiningen build files
-        case x => old(x)
-      }
     }
+
+/*
+    assemblyMergeStrategy in assembly := {
+      case "project.clj" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    }
+*/
   )
 
   lazy val buildSettings = basicSettings ++ sbtAssemblySettings
